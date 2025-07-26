@@ -1,9 +1,22 @@
+# Nama Workflow Anda, akan muncul di tab Actions
+name: Build OpenWrt for TP-Link MR3420v5
+
+# Pemicu Workflow: 'workflow_dispatch' menambahkan tombol "Run workflow" manual
+on:
+  workflow_dispatch:
+
+# Pekerjaan yang akan dilakukan
+jobs:
+  build:
+    # Menggunakan server Ubuntu terbaru yang disediakan GitHub
+    runs-on: ubuntu-latest
+
     steps:
-      # Langkah 1: Mengunduh repositori ini
+      # Langkah 1: Mengunduh repositori ini (yang berisi file workflow ini)
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Langkah 2: Menginstal semua paket prasyarat
+      # Langkah 2: Menginstal semua paket prasyarat untuk build OpenWrt
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -11,11 +24,11 @@
           gettext git libncurses5-dev libssl-dev python3-full rsync unzip zlib1g-dev \
           file wget
 
-      # Langkah 3: Mengunduh source code OpenWrt
+      # Langkah 3: Mengunduh source code OpenWrt versi stabil 23.05.4
       - name: Clone OpenWrt source code
         run: git clone https://github.com/openwrt/openwrt.git -b v23.05.4 openwrt
 
-      # Langkah 4: Memperbarui dan menginstal feeds
+      # Langkah 4: Memperbarui dan menginstal feeds (koleksi paket)
       - name: Update and install feeds
         run: |
           cd openwrt
@@ -26,6 +39,7 @@
       - name: Generate custom .config file
         run: |
           cd openwrt
+          # Menulis konfigurasi dasar ke file .config
           cat <<'EOF' > .config
           # Target Perangkat
           CONFIG_TARGET_ramips=y
@@ -49,7 +63,7 @@
           cd openwrt
           make defconfig
 
-      # Langkah 7: Memulai proses build
+      # Langkah 7: Memulai proses build (menggunakan semua core CPU yang tersedia)
       - name: Build the firmware
         run: |
           cd openwrt
@@ -60,6 +74,7 @@
         uses: actions/upload-artifact@v4
         with:
           name: openwrt-firmware-mr3420v5
+          # Path ke file firmware yang sudah jadi
           path: |
             openwrt/bin/targets/ramips/mt76x8/*factory.bin
             openwrt/bin/targets/ramips/mt76x8/*sysupgrade.bin
