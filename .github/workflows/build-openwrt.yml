@@ -64,10 +64,11 @@ jobs:
           make defconfig
 
       # Langkah 7: Memulai proses build (menggunakan semua core CPU yang tersedia)
+     
       - name: Build the firmware
         run: |
           cd openwrt
-          make -j$(nproc)
+          make -j1 V=s
 
       # Langkah 8: Mengunggah hasil build sebagai "artifact"
       - name: Upload firmware artifact
