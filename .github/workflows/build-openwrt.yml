@@ -9,7 +9,7 @@ on:
 jobs:
   build:
     # Menggunakan server Ubuntu terbaru yang disediakan GitHub
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       # Langkah 1: Mengunduh repositori ini (yang berisi file workflow ini)
