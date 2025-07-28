@@ -1,22 +1,21 @@
-# Nama Workflow Anda, akan muncul di tab Actions
-name: Build OpenWrt for TP-Link MR3420v5
+# Nama Workflow Anda
+name: Build Minimal OpenWrt for MR3420v5 (No LuCI)
 
-# Pemicu Workflow: 'workflow_dispatch' menambahkan tombol "Run workflow" manual
+# Pemicu Workflow
 on:
   workflow_dispatch:
 
-# Pekerjaan yang akan dilakukan
 jobs:
   build:
-    # MENGGUNAKAN UBUNTU 22.04 UNTUK KOMPATIBILITAS MAKSIMAL
+    # Menggunakan Ubuntu 22.04 untuk kompatibilitas
     runs-on: ubuntu-22.04
 
     steps:
-      # Langkah 1: Mengunduh repositori ini
+      # Langkah 1: Checkout
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Langkah 2: Menginstal semua paket prasyarat
+      # Langkah 2: Instal dependensi
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -24,18 +23,18 @@ jobs:
           gettext git libncurses5-dev libssl-dev python3-full rsync unzip zlib1g-dev \
           file wget
 
-      # Langkah 3: Mengunduh source code OpenWrt
+      # Langkah 3: Unduh source code OpenWrt
       - name: Clone OpenWrt source code
         run: git clone https://github.com/openwrt/openwrt.git -b v23.05.4 openwrt
 
-      # Langkah 4: Memperbarui dan menginstal feeds
+      # Langkah 4: Perbarui feeds
       - name: Update and install feeds
         run: |
           cd openwrt
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # Langkah 5: Membuat file konfigurasi kustom (.config)
+      # Langkah 5: Buat file .config minimalis
       - name: Generate custom .config file
         run: |
           cd openwrt
@@ -45,34 +44,30 @@ jobs:
           CONFIG_TARGET_ramips_mt76x8=y
           CONFIG_TARGET_ramips_mt76x8_DEVICE_tplink_tl-mr3420-v5=y
 
-          # === RESEP SUKSES ANDA ===
-          # Menambahkan paket LuCI dasar
-          CONFIG_PACKAGE_luci=y
-          # Menambahkan driver modem MBIM
+          # === RESEP INTI (WAJIB ADA) ===
           CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
-          # Menambahkan ModemManager
           CONFIG_PACKAGE_modemmanager=y
-          # Menambahkan dukungan ModemManager di LuCI
-          CONFIG_PACKAGE_luci-proto-modemmanager=y
+          
+          # CATATAN: LuCI sengaja TIDAK disertakan untuk menghemat ruang
           EOF
 
-      # Langkah 6: Melengkapi konfigurasi dengan nilai default
+      # Langkah 6: Lengkapi konfigurasi
       - name: Expand .config with defaults
         run: |
           cd openwrt
           make defconfig
 
-      # Langkah 7: Memulai proses build (menggunakan semua core CPU)
+      # Langkah 7: Build firmware (mode debug untuk log jika gagal)
       - name: Build the firmware
         run: |
           cd openwrt
-          make -j$(nproc)
+          make -j1 V=s
 
-      # Langkah 8: Mengunggah hasil build sebagai "artifact"
+      # Langkah 8: Unggah hasil build
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openwrt-firmware-mr3420v5
+          name: openwrt-firmware-mr3420v5-minimal
           path: |
             openwrt/bin/targets/ramips/mt76x8/*factory.bin
             openwrt/bin/targets/ramips/mt76x8/*sysupgrade.bin
