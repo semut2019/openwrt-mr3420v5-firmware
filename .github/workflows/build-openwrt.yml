@@ -7,15 +7,15 @@ on:
 
 jobs:
   build:
-    # Menggunakan Ubuntu 22.04 untuk kompatibilitas
+    # Menggunakan Ubuntu 22.04 untuk kompatibilitas build yang teruji
     runs-on: ubuntu-22.04
 
     steps:
-      # Langkah 1: Checkout
+      # Langkah 1: Checkout repositori Anda
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Langkah 2: Instal dependensi
+      # Langkah 2: Instal semua dependensi build yang diperlukan
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -23,11 +23,11 @@ jobs:
           gettext git libncurses5-dev libssl-dev python3-full rsync unzip zlib1g-dev \
           file wget
 
-      # Langkah 3: Unduh source code OpenWrt
+      # Langkah 3: Unduh source code OpenWrt versi stabil 23.05.4
       - name: Clone OpenWrt source code
         run: git clone https://github.com/openwrt/openwrt.git -b v23.05.4 openwrt
 
-      # Langkah 4: Perbarui feeds
+      # Langkah 4: Perbarui dan instal semua feeds (koleksi paket)
       - name: Update and install feeds
         run: |
           cd openwrt
@@ -51,19 +51,19 @@ jobs:
           # CATATAN: LuCI sengaja TIDAK disertakan untuk menghemat ruang
           EOF
 
-      # Langkah 6: Lengkapi konfigurasi
+      # Langkah 6: Lengkapi konfigurasi dengan nilai default
       - name: Expand .config with defaults
         run: |
           cd openwrt
           make defconfig
 
-      # Langkah 7: Build firmware (mode debug untuk log jika gagal)
+      # Langkah 7: Build firmware (mode debug -j1 V=s untuk log yang jelas jika gagal)
       - name: Build the firmware
         run: |
           cd openwrt
           make -j1 V=s
 
-      # Langkah 8: Unggah hasil build
+      # Langkah 8: Unggah hasil build sebagai artifact
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
