@@ -1,5 +1,5 @@
 # Nama Workflow Anda
-name: Build Minimal OpenWrt for MR3420v5 (Final Build Fix)
+name: Build Minimal OpenWrt 22.03 for MR3420v5 (No LuCI + Build Fix)
 
 # Pemicu Workflow
 on:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    # Menggunakan Ubuntu 22.04 untuk kompatibilitas
+    # Menggunakan Ubuntu 22.04 yang stabil
     runs-on: ubuntu-22.04
 
     steps:
@@ -23,9 +23,9 @@ jobs:
           gettext git libncurses5-dev libssl-dev python3-full rsync unzip zlib1g-dev \
           file wget
 
-      # Langkah 3: Unduh source code OpenWrt
+      # Langkah 3: Unduh source code OpenWrt versi STABIL 22.03.6
       - name: Clone OpenWrt source code
-        run: git clone https://github.com/openwrt/openwrt.git -b v23.05.4 openwrt
+        run: git clone https://github.com/openwrt/openwrt.git -b v22.03.6 openwrt
 
       # Langkah 4: Perbarui feeds
       - name: Update and install feeds
@@ -63,7 +63,7 @@ jobs:
           cd openwrt
           grep -rIl --include=Makefile --include='*.mk' . -e "-Werror" | xargs sed -i 's/-Werror//g'
 
-      # Langkah 7: Build firmware (mode -j1 V=s untuk log jelas)
+      # Langkah 7: Build firmware (dengan -j1 V=s untuk log jelas)
       - name: Build the firmware
         run: |
           cd openwrt
@@ -73,7 +73,7 @@ jobs:
       - name: Upload firmware artifact
         uses: actions/upload-artifact@v4
         with:
-          name: openwrt-firmware-mr3420v5-minimal
+          name: openwrt-22.03-firmware-mr3420v5-minimal
           path: |
             openwrt/bin/targets/ramips/mt76x8/*factory.bin
             openwrt/bin/targets/ramips/mt76x8/*sysupgrade.bin
