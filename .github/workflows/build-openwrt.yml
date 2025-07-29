@@ -1,5 +1,5 @@
 # Nama Workflow Anda
-name: Build Minimal OpenWrt for MR3420v5 (No LuCI + Build Fix)
+name: Build Minimal OpenWrt for MR3420v5 (Final Build Fix)
 
 # Pemicu Workflow
 on:
@@ -34,7 +34,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # Langkah 5: Buat file .config dengan perbaikan build
+      # Langkah 5: Buat file .config minimalis
       - name: Generate custom .config file
         run: |
           cd openwrt
@@ -47,12 +47,6 @@ jobs:
           # === RESEP INTI (WAJIB ADA) ===
           CONFIG_PACKAGE_kmod-usb-net-cdc-mbim=y
           CONFIG_PACKAGE_modemmanager=y
-
-          # === PERBAIKAN UNTUK BUILD ERROR ===
-          # Nonaktifkan "treat warnings as errors" untuk mengatasi inkompatibilitas compiler
-          CONFIG_DEVEL=y
-          CONFIG_CCACHE=y
-          CONFIG_EXTRA_GCC_CONFIG_OPTIONS="--disable-werror"
           
           # CATATAN: LuCI sengaja TIDAK disertakan untuk menghemat ruang
           EOF
@@ -62,6 +56,12 @@ jobs:
         run: |
           cd openwrt
           make defconfig
+
+      # LANGKAH 6.5: HAPUS "-Werror" DARI SEMUA MAKEFILE (PERBAIKAN BUILD ERROR)
+      - name: Force disable Werror in all Makefiles
+        run: |
+          cd openwrt
+          grep -rIl --include=Makefile --include='*.mk' . -e "-Werror" | xargs sed -i 's/-Werror//g'
 
       # Langkah 7: Build firmware (mode -j1 V=s untuk log jelas)
       - name: Build the firmware
