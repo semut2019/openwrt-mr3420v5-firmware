@@ -1,43 +1,4 @@
-[mktplinkfw2] *** error: kernel image is too big
-make[5]: *** [Makefile:235: ...-initramfs-kernel.bin] Error 255
-...
-ERROR: target/linux failed to build.```
 
-**Terjemahan Sederhana:**
-1.  **`mktplinkfw2`**: Ini adalah alat terakhir dalam proses build yang tugasnya "membungkus" semua file jadi satu ke dalam format `.bin` yang bisa di-flash ke router TP-Link.
-2.  **`*** error: kernel image is too big`**: Ini adalah pesan yang paling jelas dan paling penting. Alat tersebut gagal karena **file kernel dan sistem yang sudah jadi ukurannya terlalu besar** untuk partisi yang disediakan di dalam chip flash 8MB router Anda.
-
-**Kesimpulan Absolut dan Definitif:**
-> Kombinasi **OpenWrt 23.05** (dengan Kernel 5.15 yang modern dan besar) ditambah dengan paket `ModemManager` yang Anda butuhkan, menghasilkan firmware yang secara fisik **LEBIH BESAR DARI 8MB**.
-
-Ini seperti mencoba memasukkan mesin V8 ke dalam mobil kecil. Mesinnya bagus, mobilnya bagus, tapi ruangnya tidak cukup.
-
-Tidak ada lagi yang perlu di-debug. Masalahnya bukan lagi pada compiler atau lingkungan build. Masalahnya adalah **batasan fisik dari perangkat keras Anda.**
-
----
-
-### Solusi Final yang Pasti Berhasil: Mundur ke Versi yang Lebih Ramping
-
-Kita harus menggunakan basis firmware yang **lebih kecil** agar semua paket yang Anda inginkan (termasuk LuCI!) bisa muat. Jawaban yang paling tepat adalah menggunakan versi Long Term Support yang sangat stabil dan jauh lebih ramping: **OpenWrt 19.07.10**.
-
-*   **Basisnya Kecil:** Kernel 4.14 dan sistem dasarnya jauh lebih kecil.
-*   **Ruang Cukup:** Ada lebih dari cukup ruang untuk menambahkan LuCI, ModemManager, dan semua driver modem yang Anda butuhkan.
-*   **Sangat Stabil:** Versi ini sudah teruji dan sangat andal.
-
-Kita akan menggunakan semua yang telah kita pelajari untuk membuat firmware pamungkas ini.
-
----
-
-### Kode Keseluruhan Final untuk `build-openwrt.yml` (MR6400 v5 + OpenWrt 19.07)
-
-Ini adalah resep terakhir yang akan berhasil.
-
-1.  Buka repositori GitHub Anda dan pergi ke file `build-openwrt.yml`.
-2.  Klik ikon **pensil (Edit this file)**.
-3.  **HAPUS SEMUA ISI FILE** yang ada saat ini.
-4.  **Salin dan tempel SELURUH BLOK KODE di bawah ini.**
-
-```yaml
 # Nama Workflow
 name: Build OpenWrt 19.07 for MR6400v5 (Full Modem Support)
 
